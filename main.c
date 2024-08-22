@@ -1,11 +1,11 @@
 #include "Shell.h"
 
-t_ttk_token *token_class(t_token type, const char *value, int size)
+t_ttk_token *token_class(t_token type, char *value, int size)
 {
     t_ttk_token *token = malloc(sizeof(t_ttk_token));
     if (!token) return NULL;
     token->type = type;
-    token->value = value ? strdup(value) : NULL;
+    token->value = value ? value : NULL;
     token->next = NULL;
     token->size = size;
     return token;
@@ -119,16 +119,65 @@ char *substr(const char *start, const char *end)
 //     return head;
 // }
 
+char *handle_dquote(char *input)
+{
+    char *word_end = input;
+    while (*word_end) {
+        if (*word_end == '"' || *word_end == '$')
+            break;
+        word_end++;
+    }
+    return word_end;
+}
 t_ttk_token *get_token(t_stream *Token_Stream)
 {
-    int state = OUT_QUOTE;
+    static int state = OUT_QUOTE;
     char *s = Token_Stream->line + Token_Stream->position;
-    char *tok = strpbrk(s, "\n\t&|()<> ");
+    if (*s == '\0')
+        return token_class(TOKEN_EOF, NULL, 0);
+    char *tok = strpbrk(s, "\n\t&|()<> $\"'");
+    printf("tok: %c\n", *tok);
     if (*tok == ' ' || *tok == '\t' || *tok == '\0')
     {    
+        while (*tok == ' ')
+            tok++;
         Token_Stream->position = tok - Token_Stream->line;
         return token_class(TOKEN_WORD,s, tok - s);
     }
+    if (*tok == '|')
+    {
+        Token_Stream->position++;
+        return token_class(TOKEN_PIPE, "|", 1);
+    }
+    if (*tok == '"' && state == OUT_QUOTE)
+    {
+        state = IN_DQUOTE;
+        tok++;
+        char *dummy = handle_dquote(tok);
+        if (*dummy == '"')
+        {
+            state = OUT_QUOTE;
+            dummy++;
+        }
+        Token_Stream->position = dummy - Token_Stream->line;
+        return token_class(TOKEN_WORD, tok, dummy - tok);
+    }
+    if (*tok == '\'')
+    {
+        state = IN_SINGLE_QUOTE;
+        tok++;
+        char *dummy = strpbrk(tok, "'");
+        if (*dummy == '\'')
+            state = OUT_QUOTE;
+        Token_Stream->position = dummy - Token_Stream->line;
+        return token_class(TOKEN_WORD, s, dummy - s);
+    }
+    if (*tok == '&' && *(tok + 1) == '&')
+    {
+        Token_Stream->position += 2;
+        return token_class(TOKEN_AND, tok, 2);
+    }
+    return token_class(TOKEN_EOF, NULL,1);
 }
 void print_all_token_values(t_ttk_token *token)
 {
@@ -141,13 +190,16 @@ void print_all_token_values(t_ttk_token *token)
 int main()
 {
     char *example = "echo hello \"|\" cat>file.txt&&echo 'haha'\"ls\"world\"prettysex\"||echo bye\"''\"\"\"\"''\"''''''''''$ls";
-    char simple[50] = "echo hello world";
+    char simple[50] = "echo \"hello\" world";
     t_stream tokenStream;
     tokenStream.line = simple;
     tokenStream.position = 0;
     t_ttk_token *token = get_token(&tokenStream);
     printf("%.*s\n", token->size, token->value);
-    printf("%s\n", get_token(&tokenStream)->value);
+    token = get_token(&tokenStream);
+    printf("%.*s\n", token->size, token->value);
+    token = get_token(&tokenStream);
+    printf("%.*s\n", token->size, token->value);
     return 0; 
     
 }
