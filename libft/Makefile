@@ -6,7 +6,7 @@
 #    By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/16 00:40:09 by yhadhadi          #+#    #+#              #
-#    Updated: 2024/08/12 04:39:48 by yhadhadi         ###   ########.fr        #
+#    Updated: 2024/08/22 02:56:09 by yhadhadi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -58,6 +58,7 @@ SRCS := ft_abs.c\
 	ft_split.c\
 	ft_strchr.c\
 	ft_strcmp.c\
+	ft_strcspn.c\
 	ft_strdup.c\
 	ft_striteri.c\
 	ft_strjoin.c\
@@ -67,7 +68,10 @@ SRCS := ft_abs.c\
 	ft_strmapi.c\
 	ft_strncmp.c\
 	ft_strnstr.c\
+	ft_strpbrk.c\
 	ft_strrchr.c\
+	ft_strrev.c\
+	ft_strspn.c\
 	ft_strtrim.c\
 	ft_substr.c\
 	ft_tolower.c\
