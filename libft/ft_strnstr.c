@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/17 18:13:33 by yhadhadi          #+#    #+#             */
-/*   Updated: 2023/12/18 16:14:12 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/21 22:21:18 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,10 @@
 
 char	*ft_strnstr(const char *str, const char *pat, size_t n)
 {
-	const char	*p_str;
+	const char	*p_str = str;
 	const char	*p_pat;
 	size_t		off;
 
-	p_str = str;
 	if (!*pat)
 		return ((char *)p_str);
 	while (n && *p_str)
