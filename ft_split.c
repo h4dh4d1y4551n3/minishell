@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 00:58:34 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/01/25 03:57:58 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/21 22:20:11 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,10 +67,9 @@ static size_t	count_subs(const char *str, char sep)
 
 static char	**extract_sub(char **strs, const char **str, char sep)
 {
-	const char	*p_str;
+	const char	*p_str = *str;
 	char		*sub;
 
-	p_str = *str;
 	while (*p_str != sep && *p_str)
 		++p_str;
 	*strs = (char *)malloc((p_str - *str + 1) * sizeof(char));
