@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/15 01:31:20 by yhadhadi          #+#    #+#             */
-/*   Updated: 2023/12/04 10:19:45 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/22 02:55:41 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,8 @@
 
 size_t	ft_strlcpy(char *dst, const char *src, size_t siz)
 {
-	const char	*p_src;
+	const char	*p_src = src;
 
-	p_src = src;
 	while (siz > 1 && *p_src)
 	{
 		*dst++ = *p_src++;

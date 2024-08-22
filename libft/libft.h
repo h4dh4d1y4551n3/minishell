@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/13 02:55:46 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/13 02:28:31 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/22 02:55:39 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,8 @@ char	*ft_strchr(const char *str, int chr)
 		__attribute__((nonnull(1)));
 int		ft_strcmp(const char *s1, const char *s2)
 		__attribute__((nonnull(1, 2)));
+size_t	ft_strcspn(const char *str, const char *reject)
+		__attribute__((nonnull(1, 2)));
 char	*ft_strdup(const char *str)
 		__attribute__((nonnull(1), malloc));
 void	ft_striteri(char *str, int (*apply)(size_t *, char **, void *),
@@ -97,8 +99,14 @@ int		ft_strncmp(const char *s1, const char *s2, size_t n)
 		__attribute__((nonnull(1, 2)));
 char	*ft_strnstr(const char *str, const char *pat, size_t n)
 		__attribute__((nonnull(1, 2)));
+char	*ft_strpbrk(const char *str, const char *accept)
+		__attribute__((nonnull(1, 2)));
 char	*ft_strrchr(const char *str, int chr)
 		__attribute__((nonnull(1)));
+char	*ft_strrev(char *str)
+		__attribute__((nonnull(1)));
+size_t	ft_strcspn(const char *str, const char *reject)
+		__attribute__((nonnull(1, 2)));
 char	*ft_strtrim(const char *str, const char *set)
 		__attribute__((nonnull(1, 2), malloc));
 char	*ft_substr(const char *str, size_t idx, size_t sub_len)

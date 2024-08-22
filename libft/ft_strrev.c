@@ -1,40 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strnstr.c                                       :+:      :+:    :+:   */
+/*   ft_strrev.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/17 18:13:33 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/22 02:55:40 by yhadhadi         ###   ########.fr       */
+/*   Created: 2024/08/21 22:18:39 by yhadhadi          #+#    #+#             */
+/*   Updated: 2024/08/21 22:24:49 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-char	*ft_strnstr(const char *str, const char *pat, size_t n)
+char	*ft_strrev(char *str)
 {
-	const char	*p_str = str;
-	const char	*p_pat;
-	size_t		off;
+	int	len;
+	int	i;
 
-	if (!*pat)
-		return ((char *)p_str);
-	while (n && *p_str)
-	{
-		p_pat = pat;
-		while (n && *p_pat == *p_str && *p_pat)
-		{
-			++p_str;
-			++p_pat;
-			--n;
-		}
-		off = p_pat - pat;
-		p_str -= off;
-		n += off - 1;
-		if (!*p_pat)
-			return ((char *)p_str);
-		++p_str;
-	}
-	return (NULL);
+	len = ft_strlen(str);
+	i = -1;
+	while (++i < (len / 2))
+		ft_memswap(&str[i], &str[len - 1 - i], sizeof(char));
+	return (str);
 }
