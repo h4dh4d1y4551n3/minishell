@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/23 00:56:28 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/23 01:06:56 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,10 +58,8 @@ typedef struct s_lexer
 	enum e_lex_state	state;
 }	t_lexer;
 
-// init_lexer (I think there is no need for an init function a simple compound literal could do the job keeping thing in the realm of C instead of stepping into OOP ways)
-
 // eval_lex_state (This function will be handle the lexical analysis state transition this is the core of the lexer automaton)
-void	eval_lex_state(t_lexer *lexer);
+enum e_lex_state	eval_lex_state(t_lexer *lexer);
 
 // identify_tok (like strtok but in the context of our lexer it will get next token each time called and also detect the end of the prompt thus there is no more token to identify)
 t_tok	*identify_tok(t_lexer *lexer);
@@ -69,9 +67,10 @@ t_tok	*identify_tok(t_lexer *lexer);
 // analyse_prompt (This will be a function that will encapsulate the lexer
 // automaton and will use both eval_lex_state and identify_tok to fully identify
 // all tokens of a given prompt)
-void	analyse_prompt(t_lexer *lexer);
+t_list	*analyse_prompt(t_lexer *lexer);
 
 // conclude_lex_analysis (Clean up function for a lexer)
 void	conclude_lex_analysis(t_lexer *lexer);
+
 
 #endif
