@@ -13,9 +13,9 @@
 #ifndef LEXER_H
 # define LEXER_H
 
-# include "minishell.h"
-
-enum e_tok
+# include "libft/libft.h"
+    
+typedef enum e_tok
 {
 	TOK_EOF			= 0x01,
 	TOK_EOL			= 0x02,
@@ -25,7 +25,7 @@ enum e_tok
 	TOK_PIPE		= 0x20,
 	TOK_CHAIN_OP	= 0x40,
 	TOK_SUBSH_BOUND	= 0x80
-};
+} t_type;
 
 // This structure is for 
 typedef struct s_tok_frag
@@ -39,7 +39,7 @@ typedef struct s_tok
 {
 	t_list		*strm;
 	size_t		frag_cnt;
-	enum e_tok	type;
+	t_type	type;
 }	t_tok;
 
 typedef enum e_lex_state
