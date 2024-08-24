@@ -6,7 +6,7 @@
 #    By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/16 00:40:09 by yhadhadi          #+#    #+#              #
-#    Updated: 2024/08/22 02:56:09 by yhadhadi         ###   ########.fr        #
+#    Updated: 2024/08/24 11:57:40 by yhadhadi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,7 +39,9 @@ SRCS := ft_abs.c\
 	ft_isalpha.c\
 	ft_isascii.c\
 	ft_isdigit.c\
+	ft_isgraph.c\
 	ft_isprint.c\
+	ft_ispunct.c\
 	ft_isspace.c\
 	ft_itoa_base.c\
 	ft_itoa.c\

@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/13 02:55:46 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/22 02:55:39 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/24 11:57:45 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,9 @@ int		ft_isalnum(int chr);
 int		ft_isalpha(int chr);
 int		ft_isascii(int chr);
 int		ft_isdigit(int chr);
+int		ft_isgraph(int chr);
 int		ft_isprint(int chr);
+int		ft_ispunct(int chr);
 int		ft_isspace(int chr);
 char	*ft_itoa_base(int nbr, char *base)
 		__attribute__((nonnull(2), malloc));
