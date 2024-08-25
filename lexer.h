@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/24 15:11:50 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/25 10:26:41 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +22,7 @@ enum e_tok
 	TOK_WORD		= 0x01,
 	TOK_ASGNMT		= 0x02,
 	TOK_REDIR_OPRTR	= 0x04,
-	TOK_PIPE		= 0x08,
-	TOK_CHAIN_OPRTR	= 0x10,
-	TOK_SUBSH_BOUND	= 0x20
+	TOK_CTRL_OPRTR	= 0x08
 };
 
 typedef struct s_tok_frag
@@ -41,6 +39,18 @@ typedef struct s_tok
 	void		*cntx;
 	enum e_tok	type;
 }	t_tok;
+
+// Context structs
+struct s_asgnmt
+{
+	char	*assignee_id;
+	size_t	id_len;
+};
+
+// What about redirection context do we need to extract infor prior?
+struct s_redir
+{
+};
 
 typedef enum e_lex_state
 {
@@ -61,10 +71,10 @@ typedef enum e_lex_substate
 	LEX_BOUND		= 0x00,
 	LEX_WHITESPACE	= 0x01,
 	LEX_WORD		= 0x02,
-	LEX_VAR			= 0x04,
+	LEX_PARAM		= 0x04,
 	LEX_ASGNMT		= 0x08,
-	LEX_OPRTR		= 0x10,
-	LEX_SUBSH_BOUND = 0X20
+	LEX_REDIR_OPRTR = 0x10,
+	LEX_CTRL_OPRTR	= 0x20
 }	t_lex_substate;
 
 // analyse_prompt (This will be a function that will encapsulate the lexer

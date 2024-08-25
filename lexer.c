@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/24 15:56:44 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/25 10:26:39 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,8 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 		lexer->state = eval_lex_state(lexer);
 		tok = identify_tok(lexer);
 		if (!tok)
-			break ; 
+			break ;
+		// Need error check for malloc failure!
 		// Pre-syntax eval
 		// TODO
 		node = ft_lstnew(tok);
@@ -88,18 +89,20 @@ static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 			// Skip
 		else if (state == LEX_WORD)
 			// Accumulate
-		else if (state == LEX_VAR)
+		else if (state == LEX_PARAM)
 			// Skip indicator '$' accumulate identifier
 		else if (state == LEX_ASGNMT)
-			// Retrieve assignee into cntx as (char *) skip assignement operator '=' then accumulate value
-		else if (state == LEX_OPRTR)
+			// Retrieve assignee into cntx as (char *) skip assignement operator
+			// '=' then accumulate value
+		else if (state == LEX_REDIR_OPRTR)
+			// Not sure how this should be dealth with in relation to
+			// information extraction
+		else if (state == LEX_CTRL_OPRTR)
 			// Retrieve valid monographs ignore invalid one look ahead in case
 			// of digraphs then retrieve them if valid or ignore them if not.
 			// When I say ignore I mean switch the state back to whatever
 			// following consumable char is without updating the bounds[0] wich
 			// is the token start and everything will flow back to the automaton
-		else if (state == LEX_SUBSH_BOUND)
-			// Retrieve subshell bound
 	}
 	// All the above checks should return out of the function since if we are
 	// out of the loop by mean of !*lexer->off then tok->type should be TOK_END
@@ -118,12 +121,12 @@ static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 	if (ft_isspace(*lexer->off))
 		return (LEX_WHITESPACE);
 	if (*lexer->off == '$')
-		return (LEX_VAR);
+		return (LEX_PARAM);
 	if (*lexer->off == '=')
 		return (LEX_ASGNMT);
-	if (ft_strchr("&<>|", *lexer->off))
-		return (LEX_OPRTR);
-	if (ft_strchr("()", *lexer->off))
-		return (LEX_SUBSH_BOUND);
+	if (ft_strchr("<>", *lexer->off))
+		return (LEX_REDIR_OPRTR);
+	if (ft_strchr("&()|", *lexer->off))
+		return (LEX_CTRL_OPRTR);
 	return (LEX_WORD);
 }
