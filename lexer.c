@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/25 10:26:39 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/30 00:04:12 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,15 +88,14 @@ static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 		if (state == LEX_WHITESPACE)
 			// Skip
 		else if (state == LEX_WORD)
-			// Accumulate
+			// Accumulate and mark word fragment
 		else if (state == LEX_PARAM)
-			// Skip indicator '$' accumulate identifier
+			// Skip indicator '$' accumulate identifier fragment minding cases
+			// where '$' might occure successively '$$$TOK_WORD'
 		else if (state == LEX_ASGNMT)
-			// Retrieve assignee into cntx as (char *) skip assignement operator
-			// '=' then accumulate value
+			// Mark assignement fragment
 		else if (state == LEX_REDIR_OPRTR)
-			// Not sure how this should be dealth with in relation to
-			// information extraction
+			// Mark redirection operator
 		else if (state == LEX_CTRL_OPRTR)
 			// Retrieve valid monographs ignore invalid one look ahead in case
 			// of digraphs then retrieve them if valid or ignore them if not.
@@ -116,17 +115,25 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 
 static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 {
-	if (!*lexer->off)
+	const char	*off = *lexer->off;
+
+	if (!*off)
 		return (LEX_BOUND);
-	if (ft_isspace(*lexer->off))
-		return (LEX_WHITESPACE);
-	if (*lexer->off == '$')
+	if (lexer->state == LEX_UNQUOTED)
+	{
+		if (ft_isspace(*off))
+			return (LEX_WHITESPACE);
+		if (*off == '=')
+			return (LEX_ASGNMT);
+		if (ft_strchr("<>", *off))
+			return (LEX_REDIR_OPRTR);
+		if ((*off == '&' && *(off + 1) == '&')
+			|| ft_strchr("()|", *off))
+			return (LEX_CTRL_OPRTR);
+	}
+	if (lexer->state != LEX_QUOTED
+		&& (*off == '$' && (ft_isalpha(*(off + 1)) || *(off + 1) == '?'
+				|| *(off + 1) == '_')))
 		return (LEX_PARAM);
-	if (*lexer->off == '=')
-		return (LEX_ASGNMT);
-	if (ft_strchr("<>", *lexer->off))
-		return (LEX_REDIR_OPRTR);
-	if (ft_strchr("&()|", *lexer->off))
-		return (LEX_CTRL_OPRTR);
 	return (LEX_WORD);
 }

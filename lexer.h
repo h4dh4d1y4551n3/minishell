@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/25 10:26:41 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/29 21:21:23 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,21 +36,8 @@ typedef struct s_tok
 {
 	t_list		*frags;
 	size_t		frags_cnt;
-	void		*cntx;
 	enum e_tok	type;
 }	t_tok;
-
-// Context structs
-struct s_asgnmt
-{
-	char	*assignee_id;
-	size_t	id_len;
-};
-
-// What about redirection context do we need to extract infor prior?
-struct s_redir
-{
-};
 
 typedef enum e_lex_state
 {
