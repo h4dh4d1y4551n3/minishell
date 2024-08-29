@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/30 00:04:12 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/30 00:14:34 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,8 @@ t_tok	*identify_tok(t_lexer *lexer)
 
 static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 {
-	const char		*bounds[2] = {lexer->off, NULL};
+	const char		*off = lexer->off;
+	const char		*bounds[2] = {off, NULL}; // Refactor to inner functions
 	t_lex_substate	state;
 
 	while (*lexer->off)
@@ -87,16 +88,15 @@ static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 		state = eval_lex_substate(lexer);
 		if (state == LEX_WHITESPACE)
 			// Skip
-		else if (state == LEX_WORD)
+		if (state == LEX_WORD)
 			// Accumulate and mark word fragment
-		else if (state == LEX_PARAM)
-			// Skip indicator '$' accumulate identifier fragment minding cases
-			// where '$' might occure successively '$$$TOK_WORD'
-		else if (state == LEX_ASGNMT)
+		if (state == LEX_PARAM)
+			// Skip indicator '$' accumulate identifier fragment
+		if (state == LEX_ASGNMT)
 			// Mark assignement fragment
-		else if (state == LEX_REDIR_OPRTR)
+		if (state == LEX_REDIR_OPRTR)
 			// Mark redirection operator
-		else if (state == LEX_CTRL_OPRTR)
+		if (state == LEX_CTRL_OPRTR)
 			// Retrieve valid monographs ignore invalid one look ahead in case
 			// of digraphs then retrieve them if valid or ignore them if not.
 			// When I say ignore I mean switch the state back to whatever
@@ -115,7 +115,7 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 
 static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 {
-	const char	*off = *lexer->off;
+	const char	*off = lexer->off;
 
 	if (!*off)
 		return (LEX_BOUND);
