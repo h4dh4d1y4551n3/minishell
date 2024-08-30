@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/30 18:15:12 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/30 18:17:30 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,11 +89,7 @@ static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 		if (state == LEX_REDIR_OPRTR)
 			// Mark redirection operator
 		if (state == LEX_CTRL_OPRTR)
-			// Retrieve valid monographs ignore invalid one look ahead in case
-			// of digraphs then retrieve them if valid or ignore them if not.
-			// When I say ignore I mean switch the state back to whatever
-			// following consumable char is without updating the bounds[0] wich
-			// is the token start and everything will flow back to the automaton
+			// Mark operator
 	}
 	// All the above checks should return out of the function since if we are
 	// out of the loop by mean of !*lexer->off then tok->type should be TOK_END
