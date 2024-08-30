@@ -13,7 +13,7 @@
 #ifndef LEXER_H
 # define LEXER_H
 
-# include "libft.h"
+# include "libft/libft.h"
 # include "logger.h"
 
 enum e_tok
@@ -22,7 +22,9 @@ enum e_tok
 	TOK_WORD		= 0x01,
 	TOK_ASGNMT		= 0x02,
 	TOK_REDIR_OPRTR	= 0x04,
-	TOK_CTRL_OPRTR	= 0x08
+	TOK_LEFT_PARAN	= 0x08,
+	TOK_RIGHT_PARAN = 16,
+	TOK_LOGIC_OPRTR	= 32
 };
 
 typedef struct s_tok_frag
@@ -36,7 +38,6 @@ typedef struct s_tok
 {
 	t_list		*frags;
 	size_t		frags_cnt;
-	void		*cntx;
 	enum e_tok	type;
 }	t_tok;
 
@@ -73,8 +74,8 @@ typedef enum e_lex_substate
 	LEX_WORD		= 0x02,
 	LEX_PARAM		= 0x04,
 	LEX_ASGNMT		= 0x08,
-	LEX_REDIR_OPRTR = 0x10,
-	LEX_CTRL_OPRTR	= 0x20
+	LEX_REDIR_OPRTR = 16,
+	LEX_CTRL_OPRTR	= 32
 }	t_lex_substate;
 
 // analyse_prompt (This will be a function that will encapsulate the lexer
