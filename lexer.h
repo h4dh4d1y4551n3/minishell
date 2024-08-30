@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/29 21:21:23 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/30 18:11:25 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,11 @@ enum e_tok
 {
 	TOK_END			= 0x00,
 	TOK_WORD		= 0x01,
-	TOK_ASGNMT		= 0x02,
-	TOK_REDIR_OPRTR	= 0x04,
-	TOK_CTRL_OPRTR	= 0x08
+	TOK_IN_REDIR	= 0x02,
+	TOK_OUT_REDIR	= 0x04,
+	TOK_APPEND		= 0x08,
+	TOK_HEREDOC		= 0x10,
+	TOK_PIPE		= 0x20
 };
 
 typedef struct s_tok_frag
@@ -35,7 +37,6 @@ typedef struct s_tok_frag
 typedef struct s_tok
 {
 	t_list		*frags;
-	size_t		frags_cnt;
 	enum e_tok	type;
 }	t_tok;
 
@@ -51,6 +52,7 @@ typedef struct s_lexer
 	const char	*off;
 	t_list		*toks;
 	t_lex_state	state;
+	size_t		append_depth;
 }	t_lexer;
 
 typedef enum e_lex_substate
@@ -64,14 +66,10 @@ typedef enum e_lex_substate
 	LEX_CTRL_OPRTR	= 0x20
 }	t_lex_substate;
 
-// analyse_prompt (This will be a function that will encapsulate the lexer
-// automaton and will use both eval_lex_state and identify_tok to fully identify
-// all tokens of a given prompt)
-t_list				*analyse_prompt(t_lexer *lexer, t_logger *logger)
-					__attribute__((nonnull(1)));
+t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
+		__attribute__((nonnull(1)));
 
-// conclude_lex_analysis (Clean up function for a lexer)
-void				conclude_lex_analysis(t_lexer *lexer)
-					__attribute__((nonnull(1)));
+void	conclude_lex_analysis(t_lexer *lexer)
+		__attribute__((nonnull(1)));
 
 #endif

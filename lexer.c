@@ -6,16 +6,14 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/30 00:14:34 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/30 18:15:12 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "lexer.h"
 
-// eval_lex_state (This function will be handle the lexical analysis state transition this is the core of the lexer automaton)
 t_lex_state	eval_lex_state(t_lexer *lexer);
 
-// identify_tok (like strtok but in the context of our lexer it will get next token each time called and also detect the end of the prompt thus there is no more token to identify)
 t_tok		*identify_tok(t_lexer *lexer);
 
 t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
@@ -27,7 +25,6 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 	i = lexer->toks;
 	while (*lexer->off)
 	{
-		// Populate toks using identify_tok
 		lexer->state = eval_lex_state(lexer);
 		tok = identify_tok(lexer);
 		if (!tok)
@@ -41,9 +38,6 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 		if (i)
 			i->next = node;
 		i = node;
-		// This is just a basic version this might be subdue to changes since I
-		// still didn't decide how identify_tok will handle errors yet the
-		// interface is too simple for now
 	}
 	return (lexer->toks);
 }
@@ -80,7 +74,7 @@ t_tok	*identify_tok(t_lexer *lexer)
 static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 {
 	const char		*off = lexer->off;
-	const char		*bounds[2] = {off, NULL}; // Refactor to inner functions
+	const char		*bounds[2] = {off, NULL};
 	t_lex_substate	state;
 
 	while (*lexer->off)
@@ -92,8 +86,6 @@ static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 			// Accumulate and mark word fragment
 		if (state == LEX_PARAM)
 			// Skip indicator '$' accumulate identifier fragment
-		if (state == LEX_ASGNMT)
-			// Mark assignement fragment
 		if (state == LEX_REDIR_OPRTR)
 			// Mark redirection operator
 		if (state == LEX_CTRL_OPRTR)
@@ -123,12 +115,9 @@ static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 	{
 		if (ft_isspace(*off))
 			return (LEX_WHITESPACE);
-		if (*off == '=')
-			return (LEX_ASGNMT);
 		if (ft_strchr("<>", *off))
 			return (LEX_REDIR_OPRTR);
-		if ((*off == '&' && *(off + 1) == '&')
-			|| ft_strchr("()|", *off))
+		if (*off == '|')
 			return (LEX_CTRL_OPRTR);
 	}
 	if (lexer->state != LEX_QUOTED
