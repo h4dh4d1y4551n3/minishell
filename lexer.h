@@ -14,7 +14,6 @@
 # define LEXER_H
 
 # include "libft/libft.h"
-# include "logger.h"
 
 enum e_tok
 {
@@ -39,6 +38,7 @@ typedef struct s_tok
 	t_list		*frags;
 	size_t		frags_cnt;
 	enum e_tok	type;
+	int        eot;
 }	t_tok;
 
 // Context structs
@@ -81,8 +81,8 @@ typedef enum e_lex_substate
 // analyse_prompt (This will be a function that will encapsulate the lexer
 // automaton and will use both eval_lex_state and identify_tok to fully identify
 // all tokens of a given prompt)
-t_list				*analyse_prompt(t_lexer *lexer, t_logger *logger)
-					__attribute__((nonnull(1)));
+t_list				*analyse_prompt(t_lexer *lexer);
+__attribute__((nonnull(1)));
 
 // conclude_lex_analysis (Clean up function for a lexer)
 void				conclude_lex_analysis(t_lexer *lexer)
