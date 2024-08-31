@@ -33,6 +33,7 @@ t_list	*analyse_prompt(t_lexer *lexer)
 		tok = identify_tok(lexer);
 		if (!tok)
 			break ;
+		// Need error check for malloc failure!
 		// Pre-syntax eval
 		// TODO
 		node = ft_lstnew(tok);
@@ -55,8 +56,9 @@ static enum e_tok ctrl_operator(char *s)
         return (TOK_LEFT_PARAN);
     if (ft_strncmp(s, ")", 1) == 0)
         return (TOK_RIGHT_PARAN);
-    else
-        return (TOK_WORD);
+    printf("--->%d\n" , TOK_LOGIC_OPRTR);
+    return (TOK_PIPE);
+    
 }
 static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 {
@@ -126,31 +128,18 @@ static void identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
         lexer->off += (tok->type == TOK_LOGIC_OPRTR) ? 2 : 1;
         ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, lexer->off - start, 0)));
         tok->frags_cnt++;
-        return;
     }
     else if (state == LEX_REDIR_OPRTR)
-        {
-               tok->type = TOK_REDIR_OPRTR;
-               tok->frags_cnt++;
-               if (lexer->off[0] == '<' && lexer->off[1] == '<')
-               {
-                   ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, 2, 0)));
-                   lexer->off += 2;
-               }
-               else if (lexer->off[0] == '>' && lexer->off[1] == '>')
-               {
-                   ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, 2, 0)));
-                   lexer->off += 2;
-               }
-               else
-               {
-                   ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, 1, 0)));
-                   lexer->off++;
-               }
-               return;
-           }
-    lexer->state = eval_lex_state(lexer);
+       {
+           tok->type = TOK_REDIR_OPRTR;
+           tok->frags_cnt++;
+   
+           int len = (lexer->off[0] == lexer->off[1]) ? 2 : 1;
+           ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, len, 0)));
+           lexer->off += len;
+       }
     tok->eot = ft_isspace(*lexer->off);
+    lexer->state = eval_lex_state(lexer);
 }
 
 static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
@@ -161,9 +150,11 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
     bounds[0] = lexer->off;
     while (*lexer->off && eval_lex_state(lexer) != LEX_UNQUOTED)
         lexer->off++;
+    tok->type = TOK_WORD;
     ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(bounds[0], lexer->off - bounds[0]-1, canExpand )));
     tok->eot = ft_isspace(*lexer->off);
 }
+
 t_tok	*identify_tok(t_lexer *lexer)
 {
 	t_tok		*tok;
@@ -173,23 +164,17 @@ t_tok	*identify_tok(t_lexer *lexer)
 		return (NULL);
 	*tok = (t_tok){};
 	tok->eot = 0;
-	//skip initial spaces
 	while (ft_isspace(*lexer->off))
         lexer->off++;
-	if (!*lexer->off)
-        tok->type = TOK_END;
+	if (*lexer->off == 0)
+           tok->type = TOK_END;
+	lexer->state = eval_lex_state(lexer);
 	while (*lexer->off && !tok->eot)
 	{
    	    if (lexer->state == LEX_UNQUOTED)
-            {
                 identify_unquoted_tok(tok, lexer);
-            }
-        // printf("%d", lexer->state);
-        if (eval_lex_state(lexer) & (LEX_QUOTED | LEX_PARTLY_QUOTED))
-                { 
-                    // printf("--> %s \n", lexer->off);
-                    identify_quoted_tok(tok, lexer);
-                }
+        if (lexer->state & (LEX_QUOTED | LEX_PARTLY_QUOTED) && !tok->eot)
+                      identify_quoted_tok(tok, lexer);
 	}
 	return (tok);
 }
@@ -205,13 +190,13 @@ int main()
     
  
     		// Populate toks using identify_tok
-        		lexer.off = "ls$USER'pepe' | hello";
+        		lexer.off = "echo \"hello world\"$USER-'pepe' > file.txt && ls -l | cat -e && echo $HOME && echo $USER && echo $PATH && echo $PWD";
     		lexer.state = LEX_UNQUOTED;
                     		tok = identify_tok(&lexer);
                               		// Print toks
                 while (tok->type != TOK_END)
                 {
-                    printf("tok type: %d\n", tok->type);
+                    printf("tok type: %d with val : ", tok->type);
                     node = tok->frags;
                     while (node)
                     {
@@ -222,4 +207,4 @@ int main()
                     tok = identify_tok(&lexer);
                 }
                 printf("tok type: %d\n", tok->type);
-}
+ }

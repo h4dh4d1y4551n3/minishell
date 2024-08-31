@@ -19,13 +19,13 @@ enum e_tok
 {
 	TOK_END			= 0x00,
 	TOK_WORD		= 0x01,
-	TOK_ASGNMT		= 0x02,
+	TOK_PIPE		= 0x02,
 	TOK_REDIR_OPRTR	= 0x04,
-	TOK_LEFT_PARAN	= 0x08,
-	TOK_RIGHT_PARAN = 16,
-	TOK_LOGIC_OPRTR	= 32
+	TOK_WORD_XPAND = 0x08,
+	TOK_LEFT_PARAN	= 16,
+	TOK_RIGHT_PARAN = 32,
+	TOK_LOGIC_OPRTR	= 64
 };
-
 typedef struct s_tok_frag
 {
 	char	*val;
