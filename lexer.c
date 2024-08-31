@@ -6,13 +6,16 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/30 18:17:30 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/08/31 19:46:42 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "lexer.h"
+#include "string.h"
 
-t_lex_state	eval_lex_state(t_lexer *lexer);
+#define ft_strcspn strcspn
+
+t_lex_stt	eval_lex_stt(t_lexer *lexer);
 
 t_tok		*identify_tok(t_lexer *lexer);
 
@@ -25,16 +28,15 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 	i = lexer->toks;
 	while (*lexer->off)
 	{
-		lexer->state = eval_lex_state(lexer);
 		tok = identify_tok(lexer);
-		if (!tok)
-			break ;
-		// Need error check for malloc failure!
+		// if (!tok)
+		//	Return and handle malloc failure error
+		
 		// Pre-syntax eval
-		// TODO
+		// TO-DO
 		node = ft_lstnew(tok);
 		// if (!node)
-		//	return and handle error type
+		//	Return and handle error type
 		if (i)
 			i->next = node;
 		i = node;
@@ -42,83 +44,97 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 	return (lexer->toks);
 }
 
-static t_lex_state	eval_lex_state(t_lexer *lexer)
+static t_lex_stt	eval_lex_stt(t_lexer *lexer)
 {
-	// LEX_QUOTED OR LEX_PARTLY_QUOTED
-	if ((lexer->state == LEX_QUOTED && *lexer->off == '\'')
-		|| (lexer->state == LEX_PARTLY_QUOTED && *lexer->off == '"'))
+	if ((lexer->stt == LEX_QUOTED && *lexer->off == '\'')
+		|| (lexer->stt == LEX_PARTLY_QUOTED && *lexer->off == '"'))
 		return (++lexer->off, LEX_UNQUOTED);
-	// LEX_UNQUOTED
 	if (*lexer->off == '\'')
 		return (++lexer->off, LEX_QUOTED);
 	if (*lexer->off == '"')
 		return (++lexer->off, LEX_PARTLY_QUOTED);
-	return (lexer->state);
+	return (lexer->stt);
 }
 
 t_tok	*identify_tok(t_lexer *lexer)
 {
-	t_tok		*tok;
+	t_tok	*tok;
 
 	tok = (t_tok *)malloc(sizeof(t_tok));
 	if (!tok)
 		return (NULL);
 	*tok = (t_tok){};
-	if (lexer->state & (LEX_QUOTED | LEX_PARTLY_QUOTED))
-		identify_quoted_tok(tok, lexer);
-	else
-		identify_unquoted_tok(tok, lexer);
+	while (!lexer->tok_occ)
+	{
+		lexer->stt = eval_lex_stt(lexer);
+		if (lexer->stt & (LEX_QUOTED | LEX_PARTLY_QUOTED))
+			identify_quoted_tok(tok, lexer);
+		else
+			identify_unquoted_tok(tok, lexer);
+	}
 	return (tok);
 }
 
 static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 {
-	const char		*off = lexer->off;
-	const char		*bounds[2] = {off, NULL};
-	t_lex_substate	state;
+	const char		**off = lexer->off;
+	t_lex_substt	sub_stt;
 
-	while (*lexer->off)
+	while (**off)
 	{
-		state = eval_lex_substate(lexer);
-		if (state == LEX_WHITESPACE)
-			// Skip
-		if (state == LEX_WORD)
-			// Accumulate and mark word fragment
-		if (state == LEX_PARAM)
+		sub_stt = eval_lex_substt(lexer);
+		if (sub_stt == LEX_WHITESPACE)
+		{
+			while (ft_isspace(**off))
+				++*off;
+			continue ;
+		}
+		if (sub_stt == LEX_WORD)
+			identify_word_tok(tok, sub_stt, lexer);
+		if (sub_stt == LEX_PARAM)
 			// Skip indicator '$' accumulate identifier fragment
-		if (state == LEX_REDIR_OPRTR)
+		if (sub_stt == LEX_REDIR_OPRTR)
 			// Mark redirection operator
-		if (state == LEX_CTRL_OPRTR)
+		if (sub_stt == LEX_CTRL_OPRTR)
 			// Mark operator
 	}
-	// All the above checks should return out of the function since if we are
-	// out of the loop by mean of !*lexer->off then tok->type should be TOK_END
-	tok->type = TOK_END;
+	
 }
 
 static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 {
-	// Check state and handle quoted part differently from partly quoted parts The logic is similar to unquoted but less stricted since fewer state are acknowledged 
 }
 
-static t_lex_substate	eval_lex_substate(t_lexer *lexer)
+static void	identify_word_tok(t_tok *tok, t_lex_substt *sub_stt, t_lexer *lexer)
 {
-	const char	*off = lexer->off;
+	t_tok_frag	*frag;
+	t_list		*node;
+	const char	**off = lexer->off;
 
-	if (!*off)
+	frag = (t_tok_frag *)malloc(sizeof(t_tok_frag));
+	frag->val = *off;
+	frag->len = ft_strcspn(*off, " \t\n\"\'");
+	node = ft_lstnew(frag);
+}
+
+static t_lex_substt	eval_lex_substt(t_lexer *lexer)
+{
+	const char	**off = &lexer->off;
+
+	if (!**off)
 		return (LEX_BOUND);
-	if (lexer->state == LEX_UNQUOTED)
+	if (lexer->stt == LEX_UNQUOTED)
 	{
-		if (ft_isspace(*off))
+		if (ft_isspace(**off))
 			return (LEX_WHITESPACE);
-		if (ft_strchr("<>", *off))
+		if (ft_strchr("<>", **off))
 			return (LEX_REDIR_OPRTR);
-		if (*off == '|')
+		if (**off == '|')
 			return (LEX_CTRL_OPRTR);
 	}
-	if (lexer->state != LEX_QUOTED
-		&& (*off == '$' && (ft_isalpha(*(off + 1)) || *(off + 1) == '?'
-				|| *(off + 1) == '_')))
-		return (LEX_PARAM);
+	if (lexer->stt != LEX_QUOTED
+		&& (**off == '$' && (ft_isalpha(*(*off + 1)) || *(*off + 1) == '?'
+				|| *(*off + 1) == '_')))
+		return (++*off, LEX_PARAM);
 	return (LEX_WORD);
 }
