@@ -58,6 +58,8 @@ static enum e_tok ctrl_operator(char *s)
         return (TOK_RIGHT_PARAN);
     if (*s == '|')
         return (TOK_PIPE);
+    if (ft_strchr("<>",*s))
+        return (TOK_REDIR_OPRTR);
     return (TOK_END);
 }
 static t_lex_substate	eval_lex_substate(t_lexer *lexer)
@@ -149,7 +151,7 @@ static void identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
         handle_control_operator(tok, lexer, start);
     else if (state == LEX_REDIR_OPRTR)
         handle_redirection_operator(tok, lexer);
-    tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off);
+    tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off) + state != LEX_WORD;
 }
 
 
@@ -157,7 +159,7 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 {
     const char		*bounds[2] = {lexer->off, NULL};
     bool canExpand;
-
+    t_lex_substate state ;
     canExpand = lexer->state == LEX_PARTLY_QUOTED;
     bounds[0] = lexer->off;
     while (*lexer->off && eval_lex_state(lexer) != LEX_UNQUOTED)
@@ -166,7 +168,9 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
     // printf("%.*s\n",(int)  (lexer->off - bounds[0]-1 ),bounds[0]);
     ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(bounds[0], lexer->off - bounds[0] - 1, canExpand )));
     // printf("size in func : %d\n " , (int) (lexer->off - bounds[0] - 1));
-    tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off)   ;
+    state = eval_lex_substate(lexer);
+    // check if the token is a word or a parameter, if its the later, it stops increases EOT
+    tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off) + state != LEX_WORD;
 }
 
 t_tok	*identify_tok(t_lexer *lexer)
@@ -205,7 +209,7 @@ int main()
     
  
     		// Populate toks using identify_tok
-        		lexer.off = "echo hello'pepe'\"hello world $USER\"$USER$PEPE>file.txt|cat -o file.txt>lmao ";
+        		lexer.off = "echo \"hello world\">file.txt&&ls -l|cat -e&&echo$HOME&&echo$USER&&echo$PATH&&echo$PWD";
     		lexer.state = LEX_UNQUOTED;
                     		tok = identify_tok(&lexer);
                               		// Print toks
