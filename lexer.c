@@ -50,15 +50,15 @@ t_list	*analyse_prompt(t_lexer *lexer)
 }
 static enum e_tok ctrl_operator(char *s)
 {
-    if (ft_strncmp(s, "&&", 2) == 0 || ft_strncmp(s, "||", 2) == 0)
+    if (*(short *)"&&" == *(short *)s || *(short *)"||" == *(short *)s)
         return (TOK_LOGIC_OPRTR);
-    if (ft_strncmp(s, "(", 1) == 0)
+    if (*s == '(')
         return (TOK_LEFT_PARAN);
-    if (ft_strncmp(s, ")", 1) == 0)
+    if (*s == ')')
         return (TOK_RIGHT_PARAN);
-    printf("--->%d\n" , TOK_LOGIC_OPRTR);
-    return (TOK_PIPE);
-    
+    if (*s == '|')
+        return (TOK_PIPE);
+    return (TOK_END);
 }
 static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 {
@@ -105,54 +105,68 @@ t_tok_frag *frag_class(const char *s, size_t size, bool can_expand)
     token->xpandabl = can_expand;
     return token;
 }
+
+static void handle_control_operator(t_tok *tok, t_lexer *lexer, const char *start)
+{
+    tok->type = ctrl_operator((char *)lexer->off);
+    int length = (tok->type == TOK_LOGIC_OPRTR) + 1;
+    lexer->off += length;
+    ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, length, 0)));
+    tok->frags_cnt++;
+}
+
+static void handle_redirection_operator(t_tok *tok, t_lexer *lexer)
+{
+    tok->type = TOK_REDIR_OPRTR;
+    int length = (lexer->off[0] == lexer->off[1]) + 1;
+    ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, length, 0)));
+    lexer->off += length;
+    tok->frags_cnt++;
+}
+static void handle_word_or_param(t_tok *tok, t_lexer *lexer, t_lex_substate state, const char *start)
+{
+    tok->type = TOK_WORD;
+    if (state == LEX_PARAM)
+        lexer->off++;
+
+    while ((state = eval_lex_substate(lexer)) == LEX_WORD && eval_lex_state(lexer) == LEX_UNQUOTED)
+        lexer->off++;
+
+    int length = lexer->off - start - (state == LEX_WORD);
+    ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, length, 1)));
+    tok->frags_cnt++;
+}
 static void identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 {
-    const char *start = lexer->off;
-    t_lex_substate state;
-    state =  eval_lex_substate(lexer);
+    const char *start;
+    t_lex_substate state ;
+    
+    start = lexer->off;
+    state = eval_lex_substate(lexer);
     if (state & (LEX_WORD | LEX_PARAM))
-    {
-        tok->type = TOK_WORD;
-        if (state == LEX_PARAM)
-            lexer->off++;
-        start = lexer->off;
-        while ((state = eval_lex_substate(lexer)) == LEX_WORD && eval_lex_state(lexer) == LEX_UNQUOTED)
-            lexer->off++;
-        ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, lexer->off - start - (state == LEX_WORD), 1)));
-        tok->frags_cnt++;
-    }
+        handle_word_or_param(tok, lexer, state, start);
     else if (state == LEX_CTRL_OPRTR)
-    {
-        start = lexer->off;
-        tok->type = ctrl_operator((char *)lexer->off);
-        lexer->off += (tok->type == TOK_LOGIC_OPRTR) ? 2 : 1;
-        ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, lexer->off - start, 0)));
-        tok->frags_cnt++;
-    }
+        handle_control_operator(tok, lexer, start);
     else if (state == LEX_REDIR_OPRTR)
-       {
-           tok->type = TOK_REDIR_OPRTR;
-           tok->frags_cnt++;
-   
-           int len = (lexer->off[0] == lexer->off[1]) ? 2 : 1;
-           ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, len, 0)));
-           lexer->off += len;
-       }
-    tok->eot = ft_isspace(*lexer->off);
-    lexer->state = eval_lex_state(lexer);
+        handle_redirection_operator(tok, lexer);
+    tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off);
 }
+
 
 static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 {
     const char		*bounds[2] = {lexer->off, NULL};
     bool canExpand;
+
     canExpand = lexer->state == LEX_PARTLY_QUOTED;
     bounds[0] = lexer->off;
     while (*lexer->off && eval_lex_state(lexer) != LEX_UNQUOTED)
         lexer->off++;
     tok->type = TOK_WORD;
-    ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(bounds[0], lexer->off - bounds[0]-1, canExpand )));
-    tok->eot = ft_isspace(*lexer->off);
+    // printf("%.*s\n",(int)  (lexer->off - bounds[0]-1 ),bounds[0]);
+    ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(bounds[0], lexer->off - bounds[0] - 1, canExpand )));
+    // printf("size in func : %d\n " , (int) (lexer->off - bounds[0] - 1));
+    tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off)   ;
 }
 
 t_tok	*identify_tok(t_lexer *lexer)
@@ -168,9 +182,10 @@ t_tok	*identify_tok(t_lexer *lexer)
         lexer->off++;
 	if (*lexer->off == 0)
            tok->type = TOK_END;
-	lexer->state = eval_lex_state(lexer);
+	lexer->state = eval_lex_state(lexer); 
 	while (*lexer->off && !tok->eot)
 	{
+	    lexer->state = eval_lex_state(lexer);
    	    if (lexer->state == LEX_UNQUOTED)
                 identify_unquoted_tok(tok, lexer);
         if (lexer->state & (LEX_QUOTED | LEX_PARTLY_QUOTED) && !tok->eot)
@@ -190,7 +205,7 @@ int main()
     
  
     		// Populate toks using identify_tok
-        		lexer.off = "echo \"hello world\"$USER-'pepe' > file.txt && ls -l | cat -e && echo $HOME && echo $USER && echo $PATH && echo $PWD";
+        		lexer.off = "echo hello'pepe'\"hello world $USER\"$USER$PEPE>file.txt|cat -o file.txt>lmao ";
     		lexer.state = LEX_UNQUOTED;
                     		tok = identify_tok(&lexer);
                               		// Print toks
@@ -201,7 +216,7 @@ int main()
                     while (node)
                     {
                         i = (t_tok_frag *)node->data;
-                        printf("%.*s\n",(int) i->len,i->val);
+                        printf("--->%.*s\n",(int) i->len,i->val);
                         node = node->next;
                     }
                     tok = identify_tok(&lexer);
