@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 11:27:57 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 19:08:14 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,11 +53,10 @@ typedef struct s_tok
 
 enum e_lex_stt
 {
-	LEX_INBOUND			= 0x0,
 	LEX_UNQUOTED		= 0x1,
 	LEX_PARTLY_QUOTED	= 0x2,
 	LEX_QUOTED			= 0x4,
-	LEX_ENDBOUND		= 0x08,
+	LEX_ENDBOUND		= 0x8,
 	LEX_WHITESPACE_OCC	= 0x10,
 	LEX_WORD_OCC		= 0x20,
 	LEX_PARAM_OCC		= 0x40,
@@ -68,34 +67,6 @@ enum e_lex_stt
 
 # define LEX_STT_MASK 0x7
 
-/* 
-Active state: LEX_UNQUOTED
-	Active sub-state: LEX_WHITESPACE_OCC
-		Reference sub-state: LEX_WORD_OCC
-		Reference sub-state: LEX_PARAM_OCC
-	Active sub-state: LEX_WORD_OCC
-		Reference sub-state: LEX_PARAM_OCC
-	Active sub-state: LEX_PARAM_OCC
-		Reference sub-state: LEX_WORD_OCC
-	Active sub-state: LEX_REDIR_OPRTR_OCC
-	Active sub-state: LEX_CTRL_OPRTR_OCC
-	Active sub-state: LEX_ENDBOUND
-		Reference sub-state: LEX_WORD_OCC
-		Reference sub-state: LEX_PARAM_OCC
-Active sub-state: LEX_PARTLY_QUOTED
-	Active sub-state: LEX_WORD_OCC
-		Reference sub-state: LEX_PARAM_OCC
-	Active sub-state: LEX_PARAM_OCC
-		Reference sub-state: LEX_WORD_OCC
-	Active sub-state: LEX_ENDBOUND
-		Reference sub-state: LEX_WORD_OCC
-		Reference sub-state: LEX_PARAM_OCC
-Active sub-state: LEX_QUOTED
-	Active sub-state: LEX_WORD_OCC
-	Active sub-state: LEX_ENDBOUND
-		Reference sub-state: LEX_WORD_OCC
-*/
-
 typedef struct s_lexer
 {
 	const char		*off;
@@ -104,6 +75,13 @@ typedef struct s_lexer
 	unsigned short	stt;
 	unsigned short	ref_stt;
 }	t_lexer;
+
+struct s_lex_cntx
+{
+	t_tok		*tok;
+	const char	*bounds[2];
+	t_list		*i;
+};
 
 t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 		__attribute__((nonnull(1)));

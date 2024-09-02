@@ -6,18 +6,14 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 01:27:52 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 19:09:42 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "lexer.h"
 #include "string.h"
 
-#define ft_strcspn strcspn
-
-t_lex_stt	eval_lex_stt(t_lexer *lexer);
-
-t_tok		*identify_tok(t_lexer *lexer);
+enum e_lex_stt	eval_lex_stt(t_lexer *lexer);
 
 t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 {
@@ -44,93 +40,90 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 	return (lexer->toks);
 }
 
-static t_lex_stt	eval_lex_stt(t_lexer *lexer)
-{
-	const char	**off = &lexer->off;
-
-	if ((lexer->stt & LEX_QUOTED && **off == '\'')
-		|| (lexer->stt & LEX_PARTLY_QUOTED && **off == '"'))
-		return (++*off, LEX_UNQUOTED);
-	if (**off == '\'')
-		return (++*off, LEX_QUOTED);
-	if (**off == '"')
-		return (++*off, LEX_PARTLY_QUOTED);
-	return (lexer->stt);
-}
-
 t_tok	*identify_tok(t_lexer *lexer)
 {
-	t_tok	*tok;
+	struct s_lex_cntx	cntx;
 
-	tok = (t_tok *)malloc(sizeof(t_tok));
-	if (!tok)
+	cntx = (struct s_lex_cntx){(t_tok *)malloc(sizeof(t_tok))};
+	if (!cntx.tok)
 		return (NULL);
-	*tok = (t_tok){};
+	*cntx.tok = (t_tok){};
 	while (!lexer->tok_occ)
 	{
-		lexer->stt = (lexer->stt & ~LEX_STT_MASK) | eval_lex_stt(lexer);
-		if (lexer->stt & (LEX_QUOTED | LEX_PARTLY_QUOTED))
-			identify_quoted_tok(tok, lexer);
-		else
-			identify_unquoted_tok(tok, lexer);
-	}
-	return (tok);
-}
-
-static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
-{
-	const char		**off = &lexer->off;
-	const char		*bounds[2] = {*off, NULL};
-
-	while (**off)
-	{
-		lexer->stt = (lexer->stt & LEX_STT_MASK) | eval_lex_substt(lexer);
-		if (lexer->stt & LEX_WHITESPACE_OCC)
-		{
-			while (ft_isspace(**off))
-				++*off;
-			continue ;
-		}
-		if (lexer->stt & LEX_WORD_OCC)
-			// TO-DO
-		if (lexer->stt & LEX_PARAM_OCC)
-			// TO-DO
-		if (lexer->stt & LEX_REDIR_OPRTR_OCC)
-			// TO-DO
-		if (lexer->stt & LEX_CTRL_OPRTR_OCC)
-			// TO-DO
+		cntx.bounds[0] = lexer->off;
+		lexer->stt = (lexer->stt & LEX_STT_MASK) | eval_lex_stt(lexer);
+		if (lexer->stt & (LEX_WHITESPACE_OCC | LEX_PARAM_OCC | LEX_WORD_OCC))
+			identify_word_tok(&cntx, lexer);
+		if (lexer->stt & (LEX_REDIR_OPRTR_OCC | LEX_CTRL_OPRTR_OCC))
+			identify_oprtr_tok(&cntx, lexer);
 		lexer->ref_stt = lexer->stt;
 	}
-	lexer->stt = (lexer->stt & LEX_STT_MASK) | eval_lex_substt(lexer);
-	// TO-DO
+	return (cntx.tok);
 }
 
-static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
+static void	identify_word_tok(struct s_lex_cntx *cntx, t_lexer *lexer)
 {
+	t_tok_frag	*frag;
+	t_list		*node;
+
+	if (lexer->stt & (LEX_UNQUOTED & LEX_WHITESPACE_OCC)
+		&& lexer->ref_stt & (LEX_PARAM_OCC | LEX_WORD_OCC))
+	{
+		frag = (t_tok_frag *)malloc(sizeof(t_tok_frag));
+		*frag = (t_tok_frag){.val = cntx->bounds[0]};
+		node = ft_lstnew(frag);
+		// if (!node)
+		//	Return and handle error type
+		ft_lstadd_back(cntx->tok->frags, node);
+
+	}
+	if (lexer->stt &  (LEX_UNQUOTED))
+
+	if (lexer->stt & (LEX_UNQUOTED | LEX_WHITESPACE_OCC))
+	{
+		while (ft_isspace(*lexer->off))
+			++lexer->off;
+		return ;
+	}
+	
 }
 
-static void	identify_word_tok(t_tok *tok, t_lexer *lexer)
+static void	identify_oprtr_tok(struct s_lex_cntx *cntx, t_lexer *lexer)
 {
+
 }
 
-static t_lex_stt	eval_lex_substt(t_lexer *lexer)
-{
-	const char	**off = &lexer->off;
+// delimit_tok_frag
 
+static enum e_lex_stt	eval_lex_stt(t_lexer *lexer)
+{
+	lexer->stt = (lexer->stt & ~LEX_STT_MASK) | eval_lex_refstt(lexer);
+	if (!*lexer->off)
+		return (LEX_ENDBOUND);
 	if (lexer->stt & LEX_UNQUOTED)
 	{
-		if (ft_isspace(**off))
+		if (ft_isspace(*lexer->off))
 			return (LEX_WHITESPACE_OCC);
-		if (ft_strchr("<>", **off))
+		if (ft_strchr("<>", *lexer->off))
 			return (LEX_REDIR_OPRTR_OCC);
-		if (**off == '|')
+		if (*lexer->off == '|')
 			return (LEX_CTRL_OPRTR_OCC);
 	}
-	if (!(lexer->stt & LEX_QUOTED)
-		&& (**off == '$' && (ft_isalpha(*(*off + 1)) || *(*off + 1) == '?'
-				|| *(*off + 1) == '_')))
-		return (++*off, LEX_PARAM_OCC);
-	if (!**off)
-		return (LEX_ENDBOUND);
+	if (!(lexer->stt & LEX_QUOTED) && (*lexer->off == '$'
+			&& (ft_isalpha(*(lexer->off + 1))
+				|| *(lexer->off + 1) == '?' || *(lexer->off + 1) == '_')))
+		return (++lexer->off, LEX_PARAM_OCC);
 	return (LEX_WORD_OCC);
+}
+
+static enum e_lex_stt	eval_lex_refstt(t_lexer *lexer)
+{
+	if ((lexer->stt & LEX_QUOTED && *lexer->off == '\'')
+		|| (lexer->stt & LEX_PARTLY_QUOTED && *lexer->off == '"'))
+		return (++lexer->off, LEX_UNQUOTED);
+	if (*lexer->off == '\'')
+		return (++lexer->off, LEX_QUOTED);
+	if (*lexer->off == '"')
+		return (++lexer->off, LEX_PARTLY_QUOTED);
+	return (lexer->stt);
 }
