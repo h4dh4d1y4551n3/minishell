@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 19:44:56 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 20:52:51 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,7 @@ enum e_tok
 	TOK_OUT_REDIR		= 0x4,
 	TOK_APPEND			= 0x8,
 	TOK_HEREDOC			= 0x10,
-	TOK_PIPE			= 0x20,
-	TOK_AND				= 0x40,
-	TOK_OR				= 0x80,
-	TOK_SUBSH_INBOUND	= 0x100,
-	TOK_SUBSH_OUTBOUND	= 0x200
+	TOK_PIPE			= 0x20
 };
 
 enum e_tok_frag

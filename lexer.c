@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 20:11:06 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 20:54:13 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,10 +78,10 @@ static void	identify_word_tok(struct s_lex_cntx *cntx, t_lexer *lexer)
 		// if (!node)
 		//	Return and handle error type
 		cntx->tok->type = TOK_WORD;
+		if (!cntx->i)
+			cntx->i = cntx->tok->frags;
 		if (cntx->i)
 			cntx->i->next = node;
-		else
-			cntx->i = cntx->tok->frags;
 		cntx->i = node;
 	}
 	if (lexer->stt &  (LEX_UNQUOTED))
@@ -100,7 +100,6 @@ static void	identify_oprtr_tok(struct s_lex_cntx *cntx, t_lexer *lexer)
 
 }
 
-// delimit_tok_frag
 
 static enum e_lex_stt	eval_lex_stt(t_lexer *lexer)
 {
