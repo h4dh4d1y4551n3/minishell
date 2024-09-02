@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/08/31 18:52:47 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 11:27:57 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,25 +18,31 @@
 
 enum e_tok
 {
-	TOK_END				= 0x00,
-	TOK_WORD			= 0x01,
-	TOK_IN_REDIR		= 0x02,
-	TOK_OUT_REDIR		= 0x04,
-	TOK_APPEND			= 0x08,
+	TOK_END				= 0x0,
+	TOK_WORD			= 0x1,
+	TOK_IN_REDIR		= 0x2,
+	TOK_OUT_REDIR		= 0x4,
+	TOK_APPEND			= 0x8,
 	TOK_HEREDOC			= 0x10,
 	TOK_PIPE			= 0x20,
 	TOK_AND				= 0x40,
 	TOK_OR				= 0x80,
 	TOK_SUBSH_INBOUND	= 0x100,
 	TOK_SUBSH_OUTBOUND	= 0x200
+};
 
+enum e_tok_frag
+{
+	LTRL,
+	XPNDBL,
+	SPLTBL
 };
 
 typedef struct s_tok_frag
 {
-	char	*val;
-	size_t	len;
-	bool	xpandabl;
+	char			*val;
+	size_t			len;
+	enum e_tok_frag	type;
 }	t_tok_frag;
 
 typedef struct s_tok
@@ -45,31 +51,59 @@ typedef struct s_tok
 	enum e_tok	type;
 }	t_tok;
 
-typedef enum e_lex_stt
+enum e_lex_stt
 {
-	LEX_UNQUOTED		= 0x00,
-	LEX_PARTLY_QUOTED	= 0x01,
-	LEX_QUOTED			= 0x02
-}	t_lex_stt;
+	LEX_INBOUND			= 0x0,
+	LEX_UNQUOTED		= 0x1,
+	LEX_PARTLY_QUOTED	= 0x2,
+	LEX_QUOTED			= 0x4,
+	LEX_ENDBOUND		= 0x08,
+	LEX_WHITESPACE_OCC	= 0x10,
+	LEX_WORD_OCC		= 0x20,
+	LEX_PARAM_OCC		= 0x40,
+	LEX_ASGNMT_OCC		= 0x80,
+	LEX_REDIR_OPRTR_OCC = 0x100,
+	LEX_CTRL_OPRTR_OCC	= 0x200
+};
+
+# define LEX_STT_MASK 0x7
+
+/* 
+Active state: LEX_UNQUOTED
+	Active sub-state: LEX_WHITESPACE_OCC
+		Reference sub-state: LEX_WORD_OCC
+		Reference sub-state: LEX_PARAM_OCC
+	Active sub-state: LEX_WORD_OCC
+		Reference sub-state: LEX_PARAM_OCC
+	Active sub-state: LEX_PARAM_OCC
+		Reference sub-state: LEX_WORD_OCC
+	Active sub-state: LEX_REDIR_OPRTR_OCC
+	Active sub-state: LEX_CTRL_OPRTR_OCC
+	Active sub-state: LEX_ENDBOUND
+		Reference sub-state: LEX_WORD_OCC
+		Reference sub-state: LEX_PARAM_OCC
+Active sub-state: LEX_PARTLY_QUOTED
+	Active sub-state: LEX_WORD_OCC
+		Reference sub-state: LEX_PARAM_OCC
+	Active sub-state: LEX_PARAM_OCC
+		Reference sub-state: LEX_WORD_OCC
+	Active sub-state: LEX_ENDBOUND
+		Reference sub-state: LEX_WORD_OCC
+		Reference sub-state: LEX_PARAM_OCC
+Active sub-state: LEX_QUOTED
+	Active sub-state: LEX_WORD_OCC
+	Active sub-state: LEX_ENDBOUND
+		Reference sub-state: LEX_WORD_OCC
+*/
 
 typedef struct s_lexer
 {
-	const char	*off;
-	t_list		*toks;
-	t_lex_stt	stt;
-	bool		tok_occ;
+	const char		*off;
+	t_list			*toks;
+	bool			tok_occ;
+	unsigned short	stt;
+	unsigned short	ref_stt;
 }	t_lexer;
-
-typedef enum e_lex_substt
-{
-	LEX_BOUND		= 0x00,
-	LEX_WHITESPACE	= 0x01,
-	LEX_WORD		= 0x02,
-	LEX_PARAM		= 0x04,
-	LEX_ASGNMT		= 0x08,
-	LEX_REDIR_OPRTR = 0x10,
-	LEX_CTRL_OPRTR	= 0x20
-}	t_lex_substt;
 
 t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 		__attribute__((nonnull(1)));
