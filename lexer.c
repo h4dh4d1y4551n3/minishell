@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 19:09:42 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 20:11:06 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,15 +44,14 @@ t_tok	*identify_tok(t_lexer *lexer)
 {
 	struct s_lex_cntx	cntx;
 
-	cntx = (struct s_lex_cntx){(t_tok *)malloc(sizeof(t_tok))};
+	cntx = (struct s_lex_cntx){(t_tok *)malloc(sizeof(t_tok)), lexer->off};
 	if (!cntx.tok)
 		return (NULL);
 	*cntx.tok = (t_tok){};
 	while (!lexer->tok_occ)
 	{
-		cntx.bounds[0] = lexer->off;
 		lexer->stt = (lexer->stt & LEX_STT_MASK) | eval_lex_stt(lexer);
-		if (lexer->stt & (LEX_WHITESPACE_OCC | LEX_PARAM_OCC | LEX_WORD_OCC))
+		if (lexer->stt & (LEX_WHITESPACE_OCC | LEX_WORD_OCC | LEX_PARAM_OCC))
 			identify_word_tok(&cntx, lexer);
 		if (lexer->stt & (LEX_REDIR_OPRTR_OCC | LEX_CTRL_OPRTR_OCC))
 			identify_oprtr_tok(&cntx, lexer);
@@ -67,15 +66,23 @@ static void	identify_word_tok(struct s_lex_cntx *cntx, t_lexer *lexer)
 	t_list		*node;
 
 	if (lexer->stt & (LEX_UNQUOTED & LEX_WHITESPACE_OCC)
-		&& lexer->ref_stt & (LEX_PARAM_OCC | LEX_WORD_OCC))
+		&& lexer->ref_stt & (LEX_WORD_OCC | LEX_PARAM_OCC))
 	{
 		frag = (t_tok_frag *)malloc(sizeof(t_tok_frag));
-		*frag = (t_tok_frag){.val = cntx->bounds[0]};
+		*frag = (t_tok_frag){cntx->bnds[0], cntx->bnds[1] - cntx->bnds[0]};
+		if (lexer->ref_stt & LEX_WORD_OCC)
+			frag->type = FRAG_LTRL;
+		if (lexer->ref_stt & LEX_PARAM_OCC)
+			frag->type = FRAG_XPNDBL;
 		node = ft_lstnew(frag);
 		// if (!node)
 		//	Return and handle error type
-		ft_lstadd_back(cntx->tok->frags, node);
-
+		cntx->tok->type = TOK_WORD;
+		if (cntx->i)
+			cntx->i->next = node;
+		else
+			cntx->i = cntx->tok->frags;
+		cntx->i = node;
 	}
 	if (lexer->stt &  (LEX_UNQUOTED))
 

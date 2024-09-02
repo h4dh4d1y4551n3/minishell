@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 19:08:14 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/02 19:44:56 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ enum e_tok
 
 enum e_tok_frag
 {
-	LTRL,
-	XPNDBL,
-	SPLTBL
+	FRAG_LTRL,
+	FRAG_XPNDBL,
+	FRAG_SPLTBL
 };
 
 typedef struct s_tok_frag
@@ -79,7 +79,7 @@ typedef struct s_lexer
 struct s_lex_cntx
 {
 	t_tok		*tok;
-	const char	*bounds[2];
+	const char	*bnds[2];
 	t_list		*i;
 };
 
