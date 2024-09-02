@@ -30,6 +30,7 @@ typedef struct s_tok_frag
 	char		*val;
 	size_t		len;
 	bool		xpandabl;
+	bool        quoted;
 }				t_tok_frag;
 
 typedef struct s_tok

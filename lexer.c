@@ -53,7 +53,7 @@ t_list	*analyse_prompt(t_lexer *lexer)
 static enum e_tok	ctrl_operator(char *s)
 {
     //first check is to elimate buffer overflow caused by type punning
-    if (*s != '\0' && s[1] != '\0' )
+    if (*s != '\0' )
         if (*(short *)"&&" == *(short *)s || *(short *)"||" == *(short *)s)
             return (TOK_LOGIC_OPRTR);
 	if (*s == '(')
@@ -102,7 +102,7 @@ static t_lex_state	eval_lex_state(t_lexer *lexer)
 	return (lexer->state);
 }
 
-t_tok_frag	*frag_class(const char *s, size_t size, bool can_expand)
+t_tok_frag	*frag_class(const char *s, size_t size, bool can_expand, bool is_quote)
 {
 	t_tok_frag	*token;
 
@@ -112,6 +112,7 @@ t_tok_frag	*frag_class(const char *s, size_t size, bool can_expand)
 	token->val = (char *)s;
 	token->len = size;
 	token->xpandabl = can_expand;
+	token->quoted = is_quote;
 	return (token);
 }
 
@@ -123,7 +124,7 @@ static void	handle_control_operator(t_tok *tok, t_lexer *lexer,
 	tok->type = ctrl_operator((char *)lexer->off);
 	length = (tok->type == TOK_LOGIC_OPRTR) + 1;
 	lexer->off += length;
-	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, length, 0)));
+	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, length, 0, 0)));
 	tok->frags_cnt++;
 }
 
@@ -133,7 +134,7 @@ static void	handle_redirection_operator(t_tok *tok, t_lexer *lexer)
 
 	tok->type = TOK_REDIR_OPRTR;
 	length = (lexer->off[0] == lexer->off[1]) + 1;
-	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, length, 0)));
+	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(lexer->off, length, 0, 0)));
 	lexer->off += length;
 	tok->frags_cnt++;
 }
@@ -149,7 +150,7 @@ static void	handle_word_or_param(t_tok *tok, t_lexer *lexer,
 		&& eval_lex_state(lexer) == LEX_UNQUOTED)
 		lexer->off++;
 	length = lexer->off - start - (state == LEX_WORD);
-	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, length, 1)));
+	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(start, length, 1, 0)));
 	tok->frags_cnt++;
 }
 static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
@@ -181,7 +182,7 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 		lexer->off++;
 	tok->type = TOK_WORD;
 	ft_lstadd_back(&tok->frags, ft_lstnew(frag_class(bounds[0], lexer->off
-				- bounds[0] - 1, canExpand)));
+				- bounds[0] - 1, canExpand, canExpand)));
 	state = eval_lex_substate(lexer);
 	tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off)
 		+ state != LEX_WORD;
