@@ -21,9 +21,10 @@ enum			e_tok
 	TOK_WORD = 0x01,
 	TOK_PIPE = 0x02,
 	TOK_REDIR_OPRTR = 0x04,
-	TOK_LEFT_PARAN = 16,
-	TOK_RIGHT_PARAN = 32,
-	TOK_LOGIC_OPRTR = 64
+	TOK_OPEN_PARAN = 16,
+	TOK_CLOSE_PARAN = 32,
+	TOK_LOGIC_OPRTR = 64,
+	TOK_START = 128
 };
 typedef struct s_tok_frag
 {
@@ -86,5 +87,6 @@ __attribute__((nonnull(1)));
 
 // conclude_lex_analysis (Clean up function for a lexer)
 void			conclude_lex_analysis(t_lexer *lexer) __attribute__((nonnull(1)));
+bool expects(enum e_tok current, enum e_tok next);
 
 #endif

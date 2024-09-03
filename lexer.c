@@ -27,22 +27,38 @@ t_list	*analyse_prompt(t_lexer *lexer)
 	t_list	*i;
 	t_list	*node;
 
-	i = lexer->toks;
+	int counter_open_paran = 0;
+	int counter_close_paran = 0;
+	int val;
+	lexer->toks = ft_lstnew(NULL);
+	lexer->toks->data = (t_tok*) malloc(sizeof(t_tok));
+	if (!lexer->toks->data)
+	    return (NULL);
+	 ((t_tok *) lexer->toks->data)->type = TOK_START;
+	node = lexer->toks;
 	while (*lexer->off)
 	{
-		lexer->state = eval_lex_state(lexer);
 		tok = identify_tok(lexer);
 		if (!tok)
 			break ;
+		if (tok->type == counter_open_paran)
+		    counter_open_paran++;
+		if (tok->type == counter_close_paran)
+		 {
+			counter_close_paran++;
+			if (counter_close_paran > counter_open_paran)
+			   printf("INCORRECT PARANTHESIS\n"), exit(1);
+			
+		}
+		if ((val = expects(((t_tok *)node->data)->type ,tok->type) ))
+		     ft_lstadd_back(&lexer->toks, ft_lstnew(tok));
+		else
+							 printf("error syntax %d %d \n",((t_tok *) node->data)->type, tok->type );
 		// Need error check for malloc failure!
 		// Pre-syntax eval
 		// TODO
-		node = ft_lstnew(tok);
-		// if (!node)
+		node->data = tok;
 		//	return and handle error type
-		if (i)
-			i->next = node;
-		i = node;
 		// This is just a basic version this might be subdue to changes since I
 		// still didn't decide how identify_tok will handle errors yet the
 		// interface is too simple for now
@@ -57,9 +73,9 @@ static enum e_tok	ctrl_operator(char *s)
         if (*(short *)"&&" == *(short *)s || *(short *)"||" == *(short *)s)
             return (TOK_LOGIC_OPRTR);
 	if (*s == '(')
-		return (TOK_LEFT_PARAN);
+		return (TOK_OPEN_PARAN);
 	if (*s == ')')
-		return (TOK_RIGHT_PARAN);
+		return (TOK_CLOSE_PARAN);
 	if (*s == '|')
 		return (TOK_PIPE);
 	if (ft_strchr("<>", *s))
@@ -81,25 +97,16 @@ static t_lex_substate	eval_lex_substate(t_lexer *lexer)
 		return (LEX_CTRL_OPRTR);
 	return (LEX_WORD);
 }
-static t_lex_state	eval_lex_state(t_lexer *lexer)
+static t_lex_state eval_lex_state(t_lexer *lexer)
 {
-	if ((lexer->state == LEX_QUOTED && *lexer->off == '\'')
-			|| (lexer->state == LEX_PARTLY_QUOTED && *lexer->off == '"'))
-	{
-		lexer->state = LEX_UNQUOTED;
-		return (++lexer->off, LEX_UNQUOTED);
-	}
-	if (*lexer->off == '\'')
-	{
-		lexer->state = LEX_QUOTED;
-		return (++lexer->off, LEX_QUOTED);
-	}
-	if (*lexer->off == '"')
-	{
-		lexer->state = LEX_PARTLY_QUOTED;
-		return (++lexer->off, LEX_PARTLY_QUOTED);
-	}
-	return (lexer->state);
+    if ((lexer->state == LEX_QUOTED && *lexer->off == '\'') ||
+        (lexer->state == LEX_PARTLY_QUOTED && *lexer->off == '"'))
+        return (++lexer->off, lexer->state = LEX_UNQUOTED);
+    if (*lexer->off == '\'')
+        return (++lexer->off, lexer->state = LEX_QUOTED);
+    if (*lexer->off == '"')
+        return (++lexer->off, lexer->state = LEX_PARTLY_QUOTED);
+    return lexer->state;
 }
 
 t_tok_frag	*frag_class(const char *s, size_t size, bool can_expand, bool is_quote)
@@ -221,21 +228,25 @@ int	main(void)
 	t_lexer lexer;
 
 	// Populate toks using identify_tok
-	lexer.off = "echo \"hello world\">file.txt&&ls -l|cat -e&&echo$HOME&&echo$USER&&echo$PATH&&echo$PWD(echo hello && echo pepe";
+	//dont suggest to use this function
+	printf("hello\n");
+    	lexer.off = "cat | grep \"hello\" | wc -l | echo \"hello\"";
+     printf("hmm");
 	lexer.state = LEX_UNQUOTED;
-	tok = identify_tok(&lexer);
-	// Print toks
-	while (tok->type != TOK_END)
-	{
-		printf("tok type: %d with val : ", tok->type);
-		node = tok->frags;
-		while (node)
-		{
-			i = (t_tok_frag *)node->data;
-			printf("--->%.*s\n", (int)i->len, i->val);
-			node = node->next;
-		}
-		tok = identify_tok(&lexer);
-	}
-	printf("tok type: %d\n", tok->type);
+	// tok = identify_tok(&lexer);
+	// // Print toks
+	// while (tok->type != TOK_END)
+	// {
+	// 	printf("tok type: %d with val : ", tok->type);
+	// 	node = tok->frags;
+	// 	while (node)
+	// 	{
+	// 		i = (t_tok_frag *)node->data;
+	// 		printf("--->%.*s\n", (int)i->len, i->val);
+	// 		node = node->next;
+	// 	}
+	// 	tok = identify_tok(&lexer);
+	// }
+	// printf("tok type: %d\n", tok->type);
+	analyse_prompt(&lexer);
 }
