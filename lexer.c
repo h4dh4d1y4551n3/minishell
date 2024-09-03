@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/23 01:10:06 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 20:54:13 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/03 01:00:44 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,14 @@ t_list	*analyse_prompt(t_lexer *lexer, t_logger *logger)
 
 t_tok	*identify_tok(t_lexer *lexer)
 {
+	t_tok				*tok;
 	struct s_lex_cntx	cntx;
 
-	cntx = (struct s_lex_cntx){(t_tok *)malloc(sizeof(t_tok)), lexer->off};
-	if (!cntx.tok)
+	tok = (t_tok *)malloc(sizeof(t_tok));
+	if (!tok)
 		return (NULL);
-	*cntx.tok = (t_tok){};
+	*tok = (t_tok){};
+	cntx = (struct s_lex_cntx){tok, lexer->off, cntx.tok->frags};
 	while (!lexer->tok_occ)
 	{
 		lexer->stt = (lexer->stt & LEX_STT_MASK) | eval_lex_stt(lexer);
@@ -65,34 +67,26 @@ static void	identify_word_tok(struct s_lex_cntx *cntx, t_lexer *lexer)
 	t_tok_frag	*frag;
 	t_list		*node;
 
-	if (lexer->stt & (LEX_UNQUOTED & LEX_WHITESPACE_OCC)
-		&& lexer->ref_stt & (LEX_WORD_OCC | LEX_PARAM_OCC))
+	if (lexer->stt & (LEX_UNQUOTED & LEX_WHITESPACE_OCC))
 	{
-		frag = (t_tok_frag *)malloc(sizeof(t_tok_frag));
-		*frag = (t_tok_frag){cntx->bnds[0], cntx->bnds[1] - cntx->bnds[0]};
-		if (lexer->ref_stt & LEX_WORD_OCC)
-			frag->type = FRAG_LTRL;
-		if (lexer->ref_stt & LEX_PARAM_OCC)
-			frag->type = FRAG_XPNDBL;
-		node = ft_lstnew(frag);
-		// if (!node)
-		//	Return and handle error type
-		cntx->tok->type = TOK_WORD;
-		if (!cntx->i)
-			cntx->i = cntx->tok->frags;
-		if (cntx->i)
-			cntx->i->next = node;
-		cntx->i = node;
-	}
-	if (lexer->stt &  (LEX_UNQUOTED))
-
-	if (lexer->stt & (LEX_UNQUOTED | LEX_WHITESPACE_OCC))
-	{
+		if (lexer->ref_stt & (LEX_WORD_OCC | LEX_PARAM_OCC))
+		{
+			frag = (t_tok_frag *)malloc(sizeof(t_tok_frag));
+			*frag = (t_tok_frag){cntx->bound, lexer->off - cntx->bound};
+			if (lexer->ref_stt & LEX_PARAM_OCC)
+				frag->type = FRAG_XPNDBL;
+			node = ft_lstnew(frag);
+			// if (!node)
+			//	Return and handle error type
+			cntx->tok->type = TOK_WORD;
+			if (cntx->i)
+				cntx->i->next = node;
+			cntx->i = node;
+			return ;
+		}
 		while (ft_isspace(*lexer->off))
 			++lexer->off;
-		return ;
 	}
-	
 }
 
 static void	identify_oprtr_tok(struct s_lex_cntx *cntx, t_lexer *lexer)

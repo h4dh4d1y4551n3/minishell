@@ -6,7 +6,7 @@
 /*   By: yhadhadi <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/22 03:07:15 by yhadhadi          #+#    #+#             */
-/*   Updated: 2024/09/02 20:52:51 by yhadhadi         ###   ########.fr       */
+/*   Updated: 2024/09/03 00:56:01 by yhadhadi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ typedef struct s_lexer
 struct s_lex_cntx
 {
 	t_tok		*tok;
-	const char	*bnds[2];
+	const char	*bound;
 	t_list		*i;
 };
 
