@@ -38,31 +38,23 @@ t_list	*analyse_prompt(t_lexer *lexer)
 	node = lexer->toks;
 	while (*lexer->off)
 	{
+	
 		tok = identify_tok(lexer);
 		if (!tok)
 			break ;
 		if (tok->type == counter_open_paran)
 		    counter_open_paran++;
 		if (tok->type == counter_close_paran)
-		 {
-			counter_close_paran++;
-			if (counter_close_paran > counter_open_paran)
+			if (++counter_close_paran > counter_open_paran)
+			//Ill leave the better error handling for you to implement
 			   printf("INCORRECT PARANTHESIS\n"), exit(1);
-			
-		}
 		if ((val = expects(((t_tok *)node->data)->type ,tok->type) ))
 		     ft_lstadd_back(&lexer->toks, ft_lstnew(tok));
 		else
 							 printf("error syntax %d %d \n",((t_tok *) node->data)->type, tok->type );
-		// Need error check for malloc failure!
-		// Pre-syntax eval
-		// TODO
 		node->data = tok;
-		//	return and handle error type
-		// This is just a basic version this might be subdue to changes since I
-		// still didn't decide how identify_tok will handle errors yet the
-		// interface is too simple for now
 	}
+	
 	return (lexer->toks);
 }
 
@@ -174,7 +166,7 @@ static void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer)
 	else if (state == LEX_REDIR_OPRTR)
 		handle_redirection_operator(tok, lexer);
 	tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off)
-		+ state != LEX_WORD;
+		+ (state != LEX_WORD);
 }
 
 static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
@@ -192,7 +184,7 @@ static void	identify_quoted_tok(t_tok *tok, t_lexer *lexer)
 				- bounds[0] - 1, canExpand, canExpand)));
 	state = eval_lex_substate(lexer);
 	tok->eot = ft_isspace(*lexer->off) + ctrl_operator((char *)lexer->off)
-		+ state != LEX_WORD;
+		+ (state != LEX_WORD);
 }
 
 t_tok	*identify_tok(t_lexer *lexer)
@@ -229,9 +221,7 @@ int	main(void)
 
 	// Populate toks using identify_tok
 	//dont suggest to use this function
-	printf("hello\n");
-    	lexer.off = "cat | grep \"hello\" | wc -l | echo \"hello\"";
-     printf("hmm");
+    	lexer.off = "cat | grep \"hello world\" ";
 	lexer.state = LEX_UNQUOTED;
 	// tok = identify_tok(&lexer);
 	// // Print toks
