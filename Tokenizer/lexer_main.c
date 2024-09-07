@@ -55,7 +55,8 @@ t_list	*analyse_prompt(t_lexer *lexer)
 		if (expects(((t_tok *)node->data)->type ,tok->type))
 		    ft_lstadd_back(&lexer->toks, ft_lstnew(tok));
 		else
-			printf("error syntax %d %d \n",((t_tok *) node->data)->type, tok->type );
+			printf("error syntax %d %d \n",((t_tok *) node->data)->type, tok->type ), exit(1);
+		node = node->next;
 	}
 	if (tok->type == TOK_END)
 	   if (counter_paran != 0)

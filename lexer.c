@@ -10,80 +10,89 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "lexer.h"
-// main.c
-
-#include "lexer.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include "lexer.h"
 
-void print_tree(t_tree_node *node, int depth) {
-    if (!node) return;
-
-    for (int i = 0; i < depth; i++) printf("  ");
-
-    switch (node->type) {
-        case NODE_COMMAND:
-            printf("COMMAND: ");
-            for (int i = 0; node->command.args[i]; i++) {
-                t_list *frag = node->command.args[i];
-                while (frag) {
-                    t_tok_frag *tf = frag->data;
-                    printf("%.*s ", (int)tf->len, tf->val);
-                    frag = frag->next;
-                }
+void print_all_fragment(t_list *lst)
+{
+    while (lst)
+    {
+        printf("%.*s\n",  ((t_tok_frag *) (lst->data))->len, ((t_tok_frag *) (lst->data))->val);
+        lst = lst->next;
+    }
+}
+void print_tree( t_tree_node *tree)
+{
+    if (!tree)
+        return;
+    if (tree->type == NODE_COMMAND)
+    {
+        printf("COMMAND\n");
+        int i = 0;
+        while (tree->command.args[i])
+        {
+            t_list *lst = tree->command.args[i];
+            while (lst)
+            {
+                printf("%.*s\n",  ((t_tok_frag *) (lst->data))->len, ((t_tok_frag *) (lst->data))->val);
+                lst = lst->next;
             }
-            printf("\n");
-            break;
-        case NODE_PIPE:
-            printf("PIPE\n");
-            print_tree(node->op.left, depth + 1);
-            print_tree(node->op.right, depth + 1);
-            break;
-        case NODE_AND:
-            printf("AND\n");
-            print_tree(node->op.left, depth + 1);
-            print_tree(node->op.right, depth + 1);
-            break;
-        case NODE_OR:
-            printf("OR\n");
-            print_tree(node->op.left, depth + 1);
-            print_tree(node->op.right, depth + 1);
-            break;
-        case NODE_REDIR:
-        case NODE_APPEND:
-        case NODE_REDIR_IN:
-        case NODE_HEREDOC:
-            printf("REDIRECTION: ");
-            t_tok_frag *tf = node->redir.file->data;
-            printf("%.*s\n", (int)tf->len, tf->val);
-            print_tree(node->redir.command, depth + 1);
-            break;
-        default:
-            printf("UNKNOWN NODE TYPE\n");
+            i++;
+        }
+    }
+    else if (tree->type == NODE_PIPE)
+    {
+        printf("PIPE\n");
+        print_tree(tree->op.left);
+        print_tree(tree->op.right);
+    }
+    else if (tree->type == NODE_AND)
+    {
+        printf("AND\n");
+        print_tree(tree->op.left);
+        print_tree(tree->op.right);
+    }
+    else if (tree->type == NODE_OR)
+    {
+        printf("OR\n");
+        print_tree(tree->op.left);
+        print_tree(tree->op.right);
+    }
+    else if (tree->type == NODE_REDIR)
+    {
+        printf("REDIR\n");
+        print_tree(tree->redir.command);
+        print_all_fragment(tree->redir.file);
     }
 }
 
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        printf("Usage: %s \"command\"\n", argv[0]);
-        return 1;
-    }
-
+int main(void)
+{
     t_lexer lexer;
-    lexer.off = argv[1];
+    lexer.off = "echo hello > file.txt && (echo lol)";
     lexer.state = LEX_UNQUOTED;
 
+    // Analyze the prompt and tokenize it
     analyse_prompt(&lexer);
-    
-    // Skip TOK_START
     lexer.toks = lexer.toks->next;
+    // Parse the tokens into a syntax tree
+    t_tree_node *tree = parse_tree(&lexer.toks);
 
-    t_tree_node *root = parse_tree(&lexer.toks);
-
-    printf("Parsed Tree:\n");
-    print_tree(root, 0);
-
-    // TODO: Free the tree and tokens
-
+    // Execute the syntax tre
+    int i = 0;
+    // while (tree->command.args[i])
+    // {
+    //     t_list *lst = tree->command.args[i];
+    //     while (lst)
+    //     {
+    //         printf("%.*s\n",  ((t_tok_frag *) (lst->data))->len, ((t_tok_frag *) (lst->data))->val);
+    //         lst = lst->next;
+    //     }
+    //     i++;
+    // }
+    // Print the syntax tree
+    print_tree(tree);
     return 0;
+    
 }

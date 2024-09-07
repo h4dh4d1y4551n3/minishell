@@ -15,9 +15,9 @@ enum t_type  get_token_type(t_tok *token)
         {
             if (*(short *)((t_tok_frag *)token->frags->data)->val == *(short *)">>")
                 return (NODE_APPEND);
-            if (*(short *)((t_tok_frag *)token->frags->data)->val == *(short *)">")
+            if ( ((t_tok_frag *)token->frags->data)->val[0] == '>')
                 return (NODE_REDIR);
-            if (*(short *)((t_tok_frag *)token->frags->data)->val == *(short *)"<")
+            if ( ((t_tok_frag *)token->frags->data)->val[0] == '<')
                 return (NODE_REDIR_IN);
             if (*(short *)((t_tok_frag *)token->frags->data)->val == *(short *)"<<")
                 return (NODE_HEREDOC);
@@ -37,7 +37,7 @@ t_tree_node *parse_words(t_list **tokens)
     t_list *current = *tokens;
     t_list **args;
     int i = 0;
-    if (((t_tok *)(current->data))->type != TOK_WORD)
+    if (current && ((t_tok *)(current->data))->type != TOK_WORD)
         return NULL;
     t_tree_node *node = create_node(current->data);
     while (current && ((t_tok *)current->data)->type == TOK_WORD)
@@ -61,18 +61,14 @@ t_tree_node *parse_words(t_list **tokens)
 t_tree_node *parse_command(t_list **tokens)
 {
  
-   // int i = 0;
-   //  while (command && command->command.args[i])
-   //  {
-   //      t_list *lst_frags = command->command.args[i];
-   //      while (lst_frags)
-   //      {
-   //         printf("%.*s\n",  ((t_tok_frag *) (lst_frags->data))->len, ((t_tok_frag *) (lst_frags->data))->val);
-   //          lst_frags = lst_frags->next;
-   //      }
-   //      i++;
-        
-   //  }
+    if (!*tokens || ((t_tok *)(*tokens)->data)->type == TOK_CLOSE_PARAN)
+        return (NULL);
+    if (*tokens && ( ((t_tok *)(*tokens)->data)->type == TOK_OPEN_PARAN))
+    {
+        *tokens = (*tokens)->next;
+        t_tree_node *node = parse_tree(tokens);
+        return (node); 
+        }
         t_tree_node *command = parse_words(tokens);
         if (!*tokens)
             return (command);
@@ -109,7 +105,7 @@ t_tree_node *parse_and(t_list **tokens)
     t_tree_node *command = parse_pipe(tokens);
     if (!*tokens)
         return (command);
-    if (((t_tok *)(*tokens)->data)->type == TOK_LOGIC_OPRTR && ((t_tok_frag *)(*tokens)->data)->val[0] == '&')
+    if (((t_tok *)(*tokens)->data)->type == TOK_LOGIC_OPRTR && (( t_tok_frag *) (((t_tok *)((*tokens)->data))->frags->data))->val[0] == '&')
     {
         t_tree_node *node = create_node((*tokens)->data);
         node->op.left = command;
@@ -125,7 +121,7 @@ t_tree_node *parse_or(t_list **tokens)
     t_tree_node *command = parse_and(tokens);
     if (!*tokens)
         return (command);
-    if (((t_tok *)(*tokens)->data)->type == TOK_LOGIC_OPRTR && ((t_tok_frag *)(*tokens)->data)->val[0] == '|')
+    if (((t_tok *)(*tokens)->data)->type == TOK_LOGIC_OPRTR && (( t_tok_frag *) (((t_tok *)((*tokens)->data))->frags->data))->val[0] == '|')
     {
         t_tree_node *node = create_node((*tokens)->data);
         node->op.left = command;
