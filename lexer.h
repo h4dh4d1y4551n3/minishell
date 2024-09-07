@@ -78,7 +78,23 @@ typedef enum e_lex_substate
 	LEX_REDIR_OPRTR = 16,
 	LEX_CTRL_OPRTR = 32
 }				t_lex_substate;
-
+ enum t_type {NODE_AND, NODE_OR, NODE_PIPE, NODE_COMMAND, NODE_APPEND, NODE_REDIR_IN , NODE_REDIR,NODE_HEREDOC, NODE_END} ;
+typedef struct s_tree_node {
+    enum t_type type; 
+    union {
+        struct {
+            struct s_tree_node *left;
+            struct s_tree_node *right;
+        } op;
+        struct {
+            t_list **args;
+        } command;
+        struct {
+            t_list *file;
+            struct s_tree_node *command;
+        } redir;
+        };
+} t_tree_node;
 // analyse_prompt (This will be a function that will encapsulate the lexer
 // automaton and will use both eval_lex_state and identify_tok to fully identify
 // all tokens of a given prompt)
@@ -88,5 +104,13 @@ __attribute__((nonnull(1)));
 // conclude_lex_analysis (Clean up function for a lexer)
 void			conclude_lex_analysis(t_lexer *lexer) __attribute__((nonnull(1)));
 bool expects(enum e_tok current, enum e_tok next);
-
+enum e_tok	ctrl_operator(char *s);
+t_lex_state eval_lex_state(t_lexer *lexer);
+t_tok_frag	*frag_class(const char *s, size_t size, bool can_expand, bool is_quote);
+t_lex_substate	eval_lex_substate(t_lexer *lexer);
+void	identify_quoted_tok(t_tok *tok, t_lexer *lexer);
+void	identify_unquoted_tok(t_tok *tok, t_lexer *lexer);
+t_list	*analyse_prompt(t_lexer *lexer);
+t_tree_node *parse_tree(t_list **tokens);
+t_tok	*identify_tok(t_lexer *lexer);
 #endif
