@@ -65,12 +65,36 @@ void print_tree( t_tree_node *tree)
         print_tree(tree->redir.command);
         print_all_fragment(tree->redir.file);
     }
+    else if (tree->type == NODE_REDIR_IN)
+    {
+        printf("REDIR_IN\n");
+        print_tree(tree->redir.command);
+        print_all_fragment(tree->redir.file);
+    }
+    else if (tree->type == NODE_REDIR)
+    {
+        printf("REDIR_OUT\n");
+        print_tree(tree->redir.command);
+        print_all_fragment(tree->redir.file);
+    }
+    else if (tree->type == NODE_HEREDOC)
+    {
+        printf("REDIR_APPEND\n");
+        print_tree(tree->redir.command);
+        print_all_fragment(tree->redir.file);
+    }
+    else if (tree->type == NODE_APPEND)
+    {
+        printf("REDIR_APPEND\n");
+        print_tree(tree->redir.command);
+        print_all_fragment(tree->redir.file);
+    }
 }
 
 int main(void)
 {
     t_lexer lexer;
-    lexer.off = "echo hello > file.txt && (echo lol)";
+    lexer.off = "< file | hello ";
     lexer.state = LEX_UNQUOTED;
 
     // Analyze the prompt and tokenize it
